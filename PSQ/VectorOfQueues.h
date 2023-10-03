@@ -1,0 +1,252 @@
+#ifndef VECTOROFQUEUES_H
+#define VECTOROFQUEUES_H
+
+#include <condition_variable>
+#include <deque>
+#include <shared_mutex>
+#include <vector>
+#include "Data.h"
+
+
+template <class DataType>
+class VectorOfQueues
+{
+  public:
+    VectorOfQueues()
+    {
+      //
+    }
+    std::vector<std::shared_ptr<Data<DataType> > > back();
+    std::vector<std::shared_ptr<Data<DataType> > > backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp);
+
+    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVector();
+//    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVector(const std::chrono::duration<double> &duration);
+//    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVector(const std::chrono::time_point<std::chrono::high_resolution_clock> &afterTimestamp);
+//    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVector(const unsigned int &numElements);
+
+    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp);
+//    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const std::chrono::duration<double> &duration);
+//    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const std::chrono::time_point<std::chrono::high_resolution_clock> &afterTimestamp);
+//    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const unsigned int &numElements);
+
+    static std::vector<unsigned int> numElementsAfterTimestamp(const std::vector<std::deque<std::shared_ptr<Data<DataType> > > > & vectorTemp, const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp);
+
+    unsigned int push_back(const unsigned int & index, const std::shared_ptr<Data<DataType> > & data, const unsigned int & maxQueueSize);
+    unsigned int push_back(const unsigned int & index, const std::shared_ptr<Data<DataType> > & data, const std::chrono::duration<double> &duration);
+
+    virtual ~VectorOfQueues()
+    {
+      //
+    };
+
+  protected:
+
+  private:
+
+    std::condition_variable_any _cvAny;
+    std::vector<std::deque<std::shared_ptr<Data<DataType> > > > _vectorOfQueues;
+    std::shared_mutex _sharedMutex;
+
+};
+
+
+template <class DataType>
+std::vector<std::shared_ptr<Data<DataType> > > VectorOfQueues<DataType>::back()
+{
+  std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+
+  std::vector<std::shared_ptr<Data<DataType> > > data(_vectorOfQueues.size(),NULL);
+  for (unsigned int i=0; i<data.size(); ++i)
+  {
+    if (!_vectorOfQueues.at(i).empty())
+    {
+      data.at(i) = _vectorOfQueues.at(i).back();
+    }
+  }
+  return data;
+}
+
+
+template <class DataType>
+std::vector<std::shared_ptr<Data<DataType> > > VectorOfQueues<DataType>::backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp)
+{
+  bool stopWaiting;
+  std::vector<std::shared_ptr<Data<DataType> > >  data;
+
+  // wait for new data
+  {
+    std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+    _cvAny.wait(sharedLock,[&] ()->bool
+    {
+      // check vector size
+      if (_vectorOfQueues.empty())
+      {
+        return false; // keep waiting
+      }
+
+      // check timestamps if new data
+      data.clear();
+      data.resize(_vectorOfQueues.size(),NULL);
+      stopWaiting = false;
+      for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+      {
+        if (_vectorOfQueues.at(i).empty())
+        {
+          continue;
+        }
+        data.at(i) = _vectorOfQueues.at(i).back();
+        if (data.at(i)->_timestamp > lastDataTimestamp)
+        {
+          lastDataTimestamp = data.at(i)->_timestamp;
+          stopWaiting = true;
+        }
+      }
+      return stopWaiting;
+    });
+  }
+  return data;
+}
+
+
+template <class DataType>
+std::vector<std::deque<std::shared_ptr<Data<DataType> > > > VectorOfQueues<DataType>::copyVector()
+{
+  std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+  return _vectorOfQueues;
+}
+
+
+template <class DataType>
+std::vector<std::deque<std::shared_ptr<Data<DataType> > > > VectorOfQueues<DataType>::copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp)
+{
+  bool stopWaiting;
+  std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;
+
+  // wait for new data
+  {
+    std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+    _cvAny.wait(sharedLock,[&] ()->bool
+    {
+      // check vector size
+      if (_vectorOfQueues.empty())
+      {
+        return false; // keep waiting
+      }
+
+      // check timestamps if new data
+      stopWaiting = false;
+      for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+      {
+        if (_vectorOfQueues.at(i).empty())
+        {
+          continue;
+        }
+        timestamp = _vectorOfQueues.at(i).back()->_timestamp;
+        if (timestamp > lastDataTimestamp)
+        {
+          lastDataTimestamp = timestamp;
+          stopWaiting = true;
+        }
+      }
+      return stopWaiting;
+    });
+  }
+  return _vectorOfQueues;
+}
+
+
+template <class DataType>
+std::vector<unsigned int> VectorOfQueues<DataType>::numElementsAfterTimestamp(const std::vector<std::deque<std::shared_ptr<Data<DataType> > > > & vectorTemp, const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp)
+{
+  std::vector<unsigned int> counts(vectorTemp.size(),0);
+  unsigned int counter;
+
+  for (unsigned int i=0; i<vectorTemp.size(); ++i)
+  {
+    counter = 0;
+    for (auto dataItr=vectorTemp.at(i).rbegin(); vectorTemp.at(i).rend() != dataItr; ++dataItr)
+    {
+      if ((*dataItr)->_timestamp < timestamp)
+      {
+        break;
+      }
+      ++counter;
+    }
+    counts.at(i) = counter;
+  }
+  return counts;
+}
+
+
+template <class DataType>
+unsigned int VectorOfQueues<DataType>::push_back(const unsigned int & index, const std::shared_ptr<Data<DataType> > & data, const std::chrono::duration<double> &duration)
+{
+  std::deque<std::shared_ptr<Data<DataType> > > * queuePtr;
+  unsigned int queueSize = 0;
+
+  {
+    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
+
+    // resize vector if needed
+    if (_vectorOfQueues.size() <= index)
+    {
+      _vectorOfQueues.resize(index+1);
+    }
+
+    queuePtr = &(_vectorOfQueues.at(index));
+    if (!data)
+    {
+      return queuePtr->size();
+    }
+
+    // pop old data and add data to queue
+    auto timestamp = data->_timestamp - duration;
+    queuePtr = &(_vectorOfQueues.at(index));
+    while (!queuePtr->empty()
+      && queuePtr->front()
+      && queuePtr->front()->_timestamp < timestamp)
+    {
+      queuePtr->pop_front();
+    }
+    queuePtr->push_back(data);
+    queueSize = queuePtr->size();
+  }
+
+  _cvAny.notify_all();
+  return queueSize;
+};
+
+
+template <class DataType>
+unsigned int VectorOfQueues<DataType>::push_back(const unsigned int & index, const std::shared_ptr<Data<DataType> > & data, const unsigned int & maxQueueSize)
+{
+  unsigned int queueSize = 0;
+  {
+    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
+
+    // resize vector if needed
+    if (_vectorOfQueues.size() <= index)
+    {
+      _vectorOfQueues.resize(index+1);
+    }
+
+    if (!data)
+    {
+      return _vectorOfQueues.at(index).size();
+    }
+
+    // add data to queue and pop if max size reached
+    _vectorOfQueues.at(index).push_back(data);
+    if (_vectorOfQueues.at(index).size() > maxQueueSize)
+    {
+      _vectorOfQueues.at(index).pop_front();
+    }
+    queueSize = _vectorOfQueues.at(index).size();
+  }
+
+  _cvAny.notify_all();
+  return queueSize;
+};
+
+
+#endif // VECTOROFQUEUES_H

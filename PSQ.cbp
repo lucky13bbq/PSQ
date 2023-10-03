@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="PSQ" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/PSQ" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/PSQ" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="../PSQ" />
+		</Compiler>
+		<Unit filename="PSQ/BaseThread.h" />
+		<Unit filename="PSQ/Data.h" />
+		<Unit filename="PSQ/Queue.h" />
+		<Unit filename="PSQ/VectorOfQueues.h" />
+		<Unit filename="sample/CalcSum.cpp" />
+		<Unit filename="sample/CalcSum.h" />
+		<Unit filename="sample/FindMax.cpp" />
+		<Unit filename="sample/FindMax.h" />
+		<Unit filename="sample/FindMin.cpp" />
+		<Unit filename="sample/FindMin.h" />
+		<Unit filename="sample/MultiplyBy10.cpp" />
+		<Unit filename="sample/MultiplyBy10.h" />
+		<Unit filename="sample/RandomNumberGenerator.cpp" />
+		<Unit filename="sample/RandomNumberGenerator.h" />
+		<Unit filename="sample/Viewer.cpp" />
+		<Unit filename="sample/Viewer.h" />
+		<Unit filename="sample/main.cpp" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>
