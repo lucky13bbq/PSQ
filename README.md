@@ -6,6 +6,9 @@ A C++ header-only library that has no dependencies and consists of only four hea
 3. VectorOfQueues.h
 4. BaseThread.h
 
+# Disclaimer
+I am not a C++ concurrency expert so please use at your own risk and let me know what can be improved.
+
 # Overview
 Was looking for an easy way to process data from multiple sensors or cameras in a flexible multithreaded C++ pipeline. While other pipeline libraries exist such as YAPP (https://github.com/picanumber/yapp), we sought a solution with flexible pipeline configurations that would allow a) multiple threads (e.g. sensors, cameras) to write to a common vector of queues and b) subsequent threads to read data generated and provided by one of more input threads that they could use to generate new data.
 
