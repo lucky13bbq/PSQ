@@ -25,4 +25,4 @@ Each box represents a thread. Multiple random number generators write to a commo
 
 You may use CodeBlocks to compile and run.
 
-Good luck!
+Good luck and hope this helps someone!
