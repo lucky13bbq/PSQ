@@ -21,7 +21,7 @@ As such, our multithreaded pipeline is based on shared queues or shared vector o
 
 # Usage Tips
 * User defined threads should inherit from BaseThread, see sample code provided
-* Call Queue::push_back() or VectorOfQueues::push_back() to write new data for other threads to read
+* Call Queue::push_back() or VectorOfQueues::push_back() to write new data and notify other threads
 * Call Queue::back(), Queue::copyQueue(), VectorOfQueues::back(), VectorOfQueues::copyVector() to read data
 * Call Queue::backButWaitNewData(), Queue::copyQueueButWaitNewData(), VectorOfQueues::backButWaitNewData(), VectorOfQueues::copyVectorButWaitNewData() to wait for and read new data when available
 
