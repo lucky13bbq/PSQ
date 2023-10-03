@@ -45,7 +45,7 @@ int main()
   threads.emplace_back(std::thread(&Viewer::run,&viewer,std::ref(minNumbers),std::ref(maxNumbers),std::ref(multipliedBy10),std::ref(sums),std::ref(randomNumbers)));
 
   std::this_thread::sleep_for(std::chrono::seconds(10));
-  std::cout << "Stopping threads and exitting..." << std::endl;
+  std::cout << "Stopping threads and exiting..." << std::endl;
   runThreads = false;
 
   for (unsigned int i=0; i<threads.size(); ++i)
@@ -55,4 +55,6 @@ int main()
       threads.at(i).join();
     }
   }
+
+  std::cout << "Stopping threads and exiting... done!" << std::endl;
 }
