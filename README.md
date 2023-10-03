@@ -20,7 +20,7 @@ Notes:
 * Threads are supposed to stop waiting and wake up when new timestamped data are available.
 
 # Usage Tips
-* User designed threads should inherit from BaseThread
+* User designed threads should inherit from BaseThread, see sample code provided
 * Call Queue::push_back() or VectorOfQueues::push_back() to write new data for other threads to read
 * Call Queue::back(), Queue::copyQueue(), VectorOfQueues::back(), VectorOfQueues::copyVector() to read data
 * Call Queue::backButWaitNewData(), Queue::copyQueueButWaitNewData(), VectorOfQueues::backButWaitNewData(), VectorOfQueues::copyVectorButWaitNewData() to wait for and read new data when available
