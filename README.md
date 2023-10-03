@@ -1,5 +1,4 @@
-# PSQ
-A multithreaded Pipeline based on Shared Queues C++ header-only library
+# PSQ: A multithreaded Pipeline based on Shared Queues C++ header-only library
 
 Has no dependencies and consists of only four header files:
 1. TimeStampedData.h
