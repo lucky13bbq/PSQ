@@ -15,7 +15,7 @@ Was looking for an easy way to process data from multiple sensors or cameras in 
 As such, our multithreaded pipeline is based on shared queues or shared vector of queues to share data between threads. To signal new data, we use condition variables to notify and wake the waiting thread(s). 
 
 # Usage Tips
-* User designed threads should inherit from BaseThread, see sample code provided
+* User defined threads should inherit from BaseThread, see sample code provided
 * Call Queue::push_back() or VectorOfQueues::push_back() to write new data for other threads to read
 * Call Queue::back(), Queue::copyQueue(), VectorOfQueues::back(), VectorOfQueues::copyVector() to read data
 * Call Queue::backButWaitNewData(), Queue::copyQueueButWaitNewData(), VectorOfQueues::backButWaitNewData(), VectorOfQueues::copyVectorButWaitNewData() to wait for and read new data when available
