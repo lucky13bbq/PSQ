@@ -19,7 +19,7 @@ Notes:
 ## Sample Code
 To see how you could use this library, please see the provided sample code in which we implement the following simplified pipeline:
 
-![FlowDiagram](https://github.com/lucky13bbq/PSQ/assets/1645316/cb2f8391-31bd-4d4e-9c69-c9019d799510)
+![FlowDiagram](https://github.com/lucky13bbq/PSQ/assets/1645316/f2710566-a85d-4ba7-a64b-1fa8ac95e643)
 
 Each box represents a thread. Multiple random number generators write to a common vector of queues. Subsequent threads use these data to generate new data that they each write to their own output queue, except for Viewer which does not generate any data.
 
