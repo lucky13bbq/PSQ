@@ -17,7 +17,7 @@ void Viewer::run(Queue<float> &iMinNumbers, Queue<float> &iMaxNumbers, Queue<flo
   std::string funcName = "Viewer::run(...)";
 
     // test VectorOfQueues::copyVector
-    std::vector<std::deque<std::shared_ptr<Data<float> > > > randomNumbersTest = iRandomNumbers.copyVector();
+    std::vector<std::deque<std::shared_ptr<TimestampedData<float> > > > randomNumbersTest = iRandomNumbers.copyVector();
     randomNumbersTest = iRandomNumbers.copyVector();
 //    randomNumbersTest = iRandomNumbers.copyVector(5s); // TODO
 //    randomNumbersTest = iRandomNumbers.copyVector(_lastDataTimestamp); // TODO
@@ -30,13 +30,13 @@ void Viewer::run(Queue<float> &iMinNumbers, Queue<float> &iMaxNumbers, Queue<flo
 //    randomNumbersTest = iRandomNumbers.copyVectorButWaitNewData(_lastDataTimestamp,5); // TODO
 
     // test Queue::copyQueue
-    std::deque<std::shared_ptr<Data<float> > > multipliedBy10sTest = iMultipliedBy10.copyQueue();
+    std::deque<std::shared_ptr<TimestampedData<float> > > multipliedBy10sTest = iMultipliedBy10.copyQueue();
     multipliedBy10sTest = iMultipliedBy10.copyQueue(5);
     multipliedBy10sTest = iMultipliedBy10.copyQueue(std::chrono::high_resolution_clock::now());
     multipliedBy10sTest = iMultipliedBy10.copyQueue(5s);
 
     // test Queue::copyQueueButWaitNewData
-    std::deque<std::shared_ptr<Data<float> > > sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp);
+    std::deque<std::shared_ptr<TimestampedData<float> > > sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp);
     sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,5);
     sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,std::chrono::high_resolution_clock::now());
     sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,5s);
@@ -44,13 +44,13 @@ void Viewer::run(Queue<float> &iMinNumbers, Queue<float> &iMaxNumbers, Queue<flo
   while(runThreads)
   {
     // wait for new data
-    std::shared_ptr<Data<float> > sum = iSums.backButWaitNewData(_lastDataTimestamp);
+    std::shared_ptr<TimestampedData<float> > sum = iSums.backButWaitNewData(_lastDataTimestamp);
 
     // get other input data
-    std::deque<std::shared_ptr<Data<float> > > minNumbers = iMinNumbers.copyQueue();
-    std::deque<std::shared_ptr<Data<float> > > maxNumbers = iMaxNumbers.copyQueue();
-    std::deque<std::shared_ptr<Data<float> > > multipliedBy10s = iMultipliedBy10.copyQueue();
-    std::vector<std::deque<std::shared_ptr<Data<float> > > > randomNumbers = iRandomNumbers.copyVector();
+    std::deque<std::shared_ptr<TimestampedData<float> > > minNumbers = iMinNumbers.copyQueue();
+    std::deque<std::shared_ptr<TimestampedData<float> > > maxNumbers = iMaxNumbers.copyQueue();
+    std::deque<std::shared_ptr<TimestampedData<float> > > multipliedBy10s = iMultipliedBy10.copyQueue();
+    std::vector<std::deque<std::shared_ptr<TimestampedData<float> > > > randomNumbers = iRandomNumbers.copyVector();
 
     // count number of elements in other queues after current data timestamp
     unsigned int minNumberCount = Queue<float>::numElementsAfterTimestamp(minNumbers,_lastDataTimestamp);

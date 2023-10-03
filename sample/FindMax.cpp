@@ -18,9 +18,9 @@ void FindMax::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMaxNumb
   while(runThreads)
   {
     float maxVal = 0;
-    std::shared_ptr<Data<float> > randomNumber;
-    std::vector<std::shared_ptr<Data<float> > > randomNumbers;
-    std::shared_ptr<Data<float> > newData;
+    std::shared_ptr<TimestampedData<float> > randomNumber;
+    std::vector<std::shared_ptr<TimestampedData<float> > > randomNumbers;
+    std::shared_ptr<TimestampedData<float> > newData;
 
     // wait for new data
     randomNumbers = iRandomNumbers.backButWaitNewData(_lastDataTimestamp);
@@ -36,7 +36,7 @@ void FindMax::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMaxNumb
     }
 
     // write data
-    newData = std::make_shared<Data<float> > ();
+    newData = std::make_shared<TimestampedData<float> > ();
     newData->_timestamp = _lastDataTimestamp;
     newData->_data = maxVal;
 

@@ -17,9 +17,9 @@ void FindMin::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMinNumb
   while(runThreads)
   {
     float minVal = std::numeric_limits<float>::max();
-    std::shared_ptr<Data<float> > randomNumber;
-    std::vector<std::shared_ptr<Data<float> > > randomNumbers;
-    std::shared_ptr<Data<float> > newData;
+    std::shared_ptr<TimestampedData<float> > randomNumber;
+    std::vector<std::shared_ptr<TimestampedData<float> > > randomNumbers;
+    std::shared_ptr<TimestampedData<float> > newData;
 
     // wait for new data
     randomNumbers = iRandomNumbers.backButWaitNewData(_lastDataTimestamp);
@@ -35,7 +35,7 @@ void FindMin::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMinNumb
     }
 
     // prepare data
-    newData = std::make_shared<Data<float> > ();
+    newData = std::make_shared<TimestampedData<float> > ();
     newData->_timestamp = _lastDataTimestamp;
     newData->_data = minVal;
 

@@ -36,8 +36,8 @@
 			<Add directory="../PSQ" />
 		</Compiler>
 		<Unit filename="PSQ/BaseThread.h" />
-		<Unit filename="PSQ/Data.h" />
 		<Unit filename="PSQ/Queue.h" />
+		<Unit filename="PSQ/TimestampedData.h" />
 		<Unit filename="PSQ/VectorOfQueues.h" />
 		<Unit filename="sample/CalcSum.cpp" />
 		<Unit filename="sample/CalcSum.h" />

@@ -14,7 +14,7 @@ void RandomNumberGenerator::run(const unsigned int & index, VectorOfQueues<float
   std::string funcName = "RandomNumberGenerator::run(" + std::to_string(index) +")";
 
   bool outputFrequencyToConsole;
-  std::shared_ptr<Data<float> > data;
+  std::shared_ptr<TimestampedData<float> > data;
   unsigned int desiredFrequencyInHz;
 
   while (runThreads)
@@ -27,7 +27,7 @@ void RandomNumberGenerator::run(const unsigned int & index, VectorOfQueues<float
     this->threadFrequency(funcName,desiredFrequencyInHz,outputFrequencyToConsole);
 
     // prepare data
-    data = std::make_shared<Data<float> > ();
+    data = std::make_shared<TimestampedData<float> > ();
     data->_timestamp = std::chrono::high_resolution_clock::now();
     data->_data = float(rand())/RAND_MAX;
 

@@ -17,7 +17,7 @@ void CalcSum::run(Queue<float> & iMinNumbers, Queue<float> & iMaxNumbers, Queue<
 
   while(runThreads)
   {
-    std::shared_ptr<Data<float> > minNumber, maxNumber, newData;
+    std::shared_ptr<TimestampedData<float> > minNumber, maxNumber, newData;
 
     // wait for new data
     minNumber = iMinNumbers.backButWaitNewData(_lastDataTimestamp);
@@ -26,7 +26,7 @@ void CalcSum::run(Queue<float> & iMinNumbers, Queue<float> & iMaxNumbers, Queue<
     maxNumber = iMaxNumbers.back();
 
     // process input data
-    newData = std::make_shared<Data<float> > ();
+    newData = std::make_shared<TimestampedData<float> > ();
     newData->_timestamp = _lastDataTimestamp;
     newData->_data = minNumber->_data;
     if (maxNumber)

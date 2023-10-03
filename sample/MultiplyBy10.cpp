@@ -16,13 +16,13 @@ void MultiplyBy10::run(Queue<float> & iMaxNumbers, Queue<float> & oMultipliedBy1
 
   while(runThreads)
   {
-    std::shared_ptr<Data<float> > maxNumber, newData;
+    std::shared_ptr<TimestampedData<float> > maxNumber, newData;
 
     // wait for new data
     maxNumber = iMaxNumbers.backButWaitNewData(_lastDataTimestamp);
 
     // process input data
-    newData = std::make_shared<Data<float> > ();
+    newData = std::make_shared<TimestampedData<float> > ();
     newData->_timestamp = _lastDataTimestamp;
     newData->_data = maxNumber->_data * 10.0;
 
