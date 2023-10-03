@@ -32,6 +32,6 @@ To see how you could use this library, please see the provided sample code in wh
 
 Each box represents a thread. Multiple random number generators write to a common vector of queues. You may change the random number generation frequency to match your sensor frequency as desired e.g. 30Hz. Subsequent threads use these data to generate new data that they write to their own output queues, except for Viewer which does not generate any data.
 
-You may use CodeBlocks to compile and run.
+You may use CodeBlocks to open the project file, compile and run.
 
 Good luck and hope this helps someone!
