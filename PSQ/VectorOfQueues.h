@@ -20,14 +20,12 @@ class VectorOfQueues
     std::vector<std::shared_ptr<TimestampedData<DataType> > > backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp);
 
     std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector();
-//    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector(const std::chrono::duration<double> &duration);
-//    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector(const std::chrono::time_point<std::chrono::high_resolution_clock> &afterTimestamp);
-//    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector(const unsigned int &numElements);
+    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector(const std::chrono::duration<double> &duration);
+    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector(const unsigned int &numElements);
 
     std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp);
-//    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const std::chrono::duration<double> &duration);
-//    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const std::chrono::time_point<std::chrono::high_resolution_clock> &afterTimestamp);
-//    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const unsigned int &numElements);
+    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const std::chrono::duration<double> &duration);
+    std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const unsigned int &numElements);
 
     static std::vector<unsigned int> numElementsAfterTimestamp(const std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > & vectorTemp, const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp);
 
@@ -116,6 +114,67 @@ std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQ
 }
 
 
+// get the most recent elements from each queue within a desired duration
+template <class DataType>
+std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQueues<DataType>::copyVector(const std::chrono::duration<double> &duration)
+{
+  std::shared_ptr<TimestampedData<DataType> > dataPtr;
+  std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+  std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > vecTemp(_vectorOfQueues.size());
+  for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+  {
+    if (_vectorOfQueues.at(i).empty()
+      || !_vectorOfQueues.at(i).back())
+    {
+      continue;
+    }
+    dataPtr = _vectorOfQueues.at(i).back();
+    auto timestampCutoff = dataPtr->_timestamp - duration;
+    auto queueItr = _vectorOfQueues.at(i).begin();
+    for ( ; _vectorOfQueues.at(i).end()!=queueItr; ++queueItr)
+    {
+      if (*queueItr
+        && (*queueItr)->_timestamp > timestampCutoff)
+      {
+        break;
+      }
+    }
+    vecTemp.at(i) = std::deque(queueItr,_vectorOfQueues.at(i).end());
+  }
+  return vecTemp;
+}
+
+
+// get the N most recent elements from each queue
+template <class DataType>
+std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQueues<DataType>::copyVector(const unsigned int &numElements)
+{
+  std::shared_ptr<TimestampedData<DataType> > dataPtr;
+  std::deque<std::shared_ptr<TimestampedData<DataType> > > * queuePtr;
+  std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+  std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > vecTemp(_vectorOfQueues.size());
+  for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+  {
+    if (_vectorOfQueues.at(i).empty()
+      || !_vectorOfQueues.at(i).back())
+    {
+      continue;
+    }
+    queuePtr = &(_vectorOfQueues.at(i));
+    if (numElements >= queuePtr->size())
+    {
+      vecTemp.at(i) = *queuePtr;
+    }
+    else
+    {
+      auto queueItr = std::prev(queuePtr->end(),numElements);
+      vecTemp.at(i) = std::deque(queueItr,queuePtr->end());
+    }
+  }
+  return vecTemp;
+}
+
+
 template <class DataType>
 std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQueues<DataType>::copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp)
 {
@@ -137,7 +196,8 @@ std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQ
       stopWaiting = false;
       for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
       {
-        if (_vectorOfQueues.at(i).empty())
+        if (_vectorOfQueues.at(i).empty()
+          || !_vectorOfQueues.at(i).back())
         {
           continue;
         }
@@ -152,6 +212,136 @@ std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQ
     });
   }
   return _vectorOfQueues;
+}
+
+
+template <class DataType>
+std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQueues<DataType>::copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const std::chrono::duration<double> &duration)
+{
+  bool stopWaiting;
+  std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;
+  std::shared_ptr<TimestampedData<DataType> > dataPtr;
+  std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > vecTemp;
+
+  // wait for new data
+  {
+    std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+    _cvAny.wait(sharedLock,[&] ()->bool
+    {
+      // check vector size
+      if (_vectorOfQueues.empty())
+      {
+        return false; // keep waiting
+      }
+
+      // check timestamps if new data
+      stopWaiting = false;
+      for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+      {
+        if (_vectorOfQueues.at(i).empty()
+          || !_vectorOfQueues.at(i).back())
+        {
+          continue;
+        }
+        timestamp = _vectorOfQueues.at(i).back()->_timestamp;
+        if (timestamp > lastDataTimestamp)
+        {
+          lastDataTimestamp = timestamp;
+          stopWaiting = true;
+        }
+      }
+      return stopWaiting;
+    });
+
+    vecTemp.clear();
+    vecTemp.resize(_vectorOfQueues.size());
+    for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+    {
+      if (_vectorOfQueues.at(i).empty()
+        || !_vectorOfQueues.at(i).back())
+      {
+        continue;
+      }
+      dataPtr = _vectorOfQueues.at(i).back();
+      auto timestampCutoff = dataPtr->_timestamp - duration;
+      auto queueItr = _vectorOfQueues.at(i).begin();
+      for ( ; _vectorOfQueues.at(i).end()!=queueItr; ++queueItr)
+      {
+        if (*queueItr
+          && (*queueItr)->_timestamp > timestampCutoff)
+        {
+          break;
+        }
+      }
+      vecTemp.at(i) = std::deque(queueItr,_vectorOfQueues.at(i).end());
+    }
+  }
+  return vecTemp;
+}
+
+
+template <class DataType>
+std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > VectorOfQueues<DataType>::copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const unsigned int &numElements)
+{
+  bool stopWaiting;
+  std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;
+  std::deque<std::shared_ptr<TimestampedData<DataType> > > * queuePtr;
+  std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > vecTemp;
+
+  // wait for new data
+  {
+    std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+    _cvAny.wait(sharedLock,[&] ()->bool
+    {
+      // check vector size
+      if (_vectorOfQueues.empty())
+      {
+        return false; // keep waiting
+      }
+
+      // check timestamps if new data
+      stopWaiting = false;
+      for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+      {
+        if (_vectorOfQueues.at(i).empty()
+          || !_vectorOfQueues.at(i).back())
+        {
+          continue;
+        }
+        timestamp = _vectorOfQueues.at(i).back()->_timestamp;
+        if (timestamp > lastDataTimestamp)
+        {
+          lastDataTimestamp = timestamp;
+          stopWaiting = true;
+        }
+      }
+      return stopWaiting;
+    });
+
+    vecTemp.clear();
+    vecTemp.resize(_vectorOfQueues.size());
+    for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
+    {
+      if (_vectorOfQueues.at(i).empty()
+        || !_vectorOfQueues.at(i).back())
+      {
+        continue;
+      }
+      queuePtr = &(_vectorOfQueues.at(i));
+      if (numElements >= queuePtr->size())
+      {
+        // copy full queue
+        vecTemp.at(i) = *queuePtr;
+      }
+      else
+      {
+        // copy last N elements of queue
+        auto queueItr = std::prev(queuePtr->end(),numElements);
+        vecTemp.at(i) = std::deque(queueItr,queuePtr->end());
+      }
+    }
+  }
+  return vecTemp;
 }
 
 

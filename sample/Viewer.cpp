@@ -19,26 +19,22 @@ void Viewer::run(Queue<float> &iMinNumbers, Queue<float> &iMaxNumbers, Queue<flo
     // test VectorOfQueues::copyVector
     std::vector<std::deque<std::shared_ptr<TimestampedData<float> > > > randomNumbersTest = iRandomNumbers.copyVector();
     randomNumbersTest = iRandomNumbers.copyVector();
-//    randomNumbersTest = iRandomNumbers.copyVector(5s); // TODO
-//    randomNumbersTest = iRandomNumbers.copyVector(_lastDataTimestamp); // TODO
-//    randomNumbersTest = iRandomNumbers.copyVector(5); // TODO
+    randomNumbersTest = iRandomNumbers.copyVector(5s);
+    randomNumbersTest = iRandomNumbers.copyVector(5); // TODO
 
     // test VectorOfQueues::copyVectorButWaitNewData
     randomNumbersTest = iRandomNumbers.copyVectorButWaitNewData(_lastDataTimestamp);
-//    randomNumbersTest = iRandomNumbers.copyVectorButWaitNewData(_lastDataTimestamp,5s); // TODO
-//    randomNumbersTest = iRandomNumbers.copyVectorButWaitNewData(_lastDataTimestamp,_lastDataTimestamp); // TODO
-//    randomNumbersTest = iRandomNumbers.copyVectorButWaitNewData(_lastDataTimestamp,5); // TODO
+    randomNumbersTest = iRandomNumbers.copyVectorButWaitNewData(_lastDataTimestamp,5s); // TODO
+    randomNumbersTest = iRandomNumbers.copyVectorButWaitNewData(_lastDataTimestamp,5); // TODO
 
     // test Queue::copyQueue
     std::deque<std::shared_ptr<TimestampedData<float> > > multipliedBy10sTest = iMultipliedBy10.copyQueue();
     multipliedBy10sTest = iMultipliedBy10.copyQueue(5);
-    multipliedBy10sTest = iMultipliedBy10.copyQueue(std::chrono::high_resolution_clock::now());
     multipliedBy10sTest = iMultipliedBy10.copyQueue(5s);
 
     // test Queue::copyQueueButWaitNewData
     std::deque<std::shared_ptr<TimestampedData<float> > > sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp);
     sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,5);
-    sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,std::chrono::high_resolution_clock::now());
     sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,5s);
 
   while(runThreads)
