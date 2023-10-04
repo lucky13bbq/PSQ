@@ -19,7 +19,7 @@ As such, our multithreaded pipeline is based on shared queues or shared vector o
 * Data are timestamped as soon as they are recorded by the sensor or camera. New data are always pushed to the back of the queue.
 * Threads are supposed to stop waiting and wake up when new timestamped data are available.
 * Multiple readers can share a lock and don't block eachother from reading a queue. However only one thread may write or modify the queue at any time.
-* We only pop the front of the queue (i.e. remove elements in the queue) during write operations, when we have exclusive lock.
+* We only pop the front of the queue (i.e. remove elements in the queue) during write operations, when writers have exclusive lock.
 
 # Usage Tips
 * User defined threads should inherit from BaseThread, see sample code provided
