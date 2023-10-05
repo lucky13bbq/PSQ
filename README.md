@@ -10,7 +10,7 @@ A C++ header-only library that has no 3rd party dependencies and consists of onl
 I am not a C++ concurrency expert so please use at your own risk and do let me know what can be improved. This is also my first github repo post ever so please excuse me in advance for any faux pas.
 
 # Overview
-Was looking for an easy way to process data from multiple sensors or cameras in a flexible multithreaded C++ pipeline. While other pipeline libraries exist such as YAPP (https://github.com/picanumber/yapp), we sought a solution with flexible pipeline configurations that would allow: a) multiple threads (e.g. sensors, cameras) to write to a common vector of queues, if desired, and b) subsequent threads to read data from one or more input threads that they could use in turn to generate new data.
+Was looking for an easy way to process data from multiple sensors or cameras in a flexible multithreaded C++ pipeline. While other pipeline libraries exist such as YAPP (https://github.com/picanumber/yapp), we sought a solution with flexible pipeline configurations that would allow a) multiple threads (e.g. sensors, cameras) to write to a common vector of queues, if desired, and allow b) subsequent threads to read data from one or more input threads that they could use in turn to generate new data.
 
 As such, our multithreaded pipeline is based on shared queues or shared vector of queues to share data between threads. To signal new data, we use condition variables to notify and wake the waiting thread(s). 
 
