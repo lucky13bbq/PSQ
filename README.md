@@ -1,6 +1,6 @@
 # PSQ: A C++ multithreaded Pipeline based on Shared Queues
 
-A C++ header-only library that has no 3rd party dependencies and consists of only four header files:
+A small C++ template library that has no 3rd party dependencies and consists of only four header files:
 1. TimestampedData.h
 2. Queue.h
 3. VectorOfQueues.h
