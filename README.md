@@ -12,13 +12,12 @@ I am not a C++ concurrency expert so please use at your own risk and do let me k
 # Overview
 Was looking for an easy way to process live data from multiple sensors or cameras in a flexible multithreaded C++ pipeline. While other pipeline libraries exist such as YAPP (https://github.com/picanumber/yapp), we sought a solution with flexible pipeline configurations that would allow a) multiple threads (e.g. sensors, cameras) to write to a common vector of queues, if desired, and allow b) subsequent threads to read data from one or more input threads that they could use in turn to generate new data.
 
-As such, our multithreaded pipeline is based on shared queues or shared vector of queues to share data between threads. To signal new data, we use condition variables to notify and wake the waiting thread(s). 
+As such, our multithreaded pipeline is based on shared queues or shared vector of queues to share data between threads. To signal new data, we use condition variables to notify and wake the waiting thread(s). Using shared mutexes, multiple readers can share a lock and don't block eachother from reading a queue. However only one thread may write to or modify a queue at any time via an exclusive lock.
 
 # Notes
 * A thread should only wait on one condition variable so in the case of a thread that reads from multiple threads, you will need to choice which thread it should wait on.
 * Data are timestamped as soon as they are recorded by the sensor or camera. New data are always pushed to the back of the queue.
 * Threads are supposed to stop waiting and wake up when new timestamped data are available.
-* Multiple readers can share a lock and don't block eachother from reading a queue. However only one thread may write or modify the queue at any time.
 * We only pop the front of the queue (i.e. remove elements in the queue) during write operations, when writers have exclusive lock.
 
 # Usage Tips
