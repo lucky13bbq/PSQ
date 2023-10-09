@@ -15,7 +15,7 @@ Was looking for an easy way to process live data from multiple sensors or camera
 As such, our multithreaded pipeline is based on shared queues or shared vector of queues to share data between threads. To signal new data, we use condition variables to notify and wake the waiting thread(s). Using shared mutexes, multiple readers can share a lock and don't block eachother from reading a queue. However only one thread may write to or modify a queue at any time via an exclusive lock.
 
 # Notes
-* There is no swap() function available (which would be more efficient than copyQueue*()) because the assumption here is that multiple readers want to access the same data (hence the shared_mutex). If you only have a single consumer, then use a regular mutex and use a swap instead of a copy.
+* There is no swap() function available (which would be more efficient than copyQueue*()) because the assumption here is that multiple readers want to access the same data (hence the shared_mutex). If you only have a single consumer, then you may use a regular mutex and a swap() instead of a copy*().
 * A thread should only wait on one condition variable so in the case of a thread that reads from multiple threads, you will need to choice which thread it should wait on.
 * Data are timestamped as soon as they are recorded by the sensor or camera. New data are always pushed to the back of the queue.
 * Threads are supposed to stop waiting and wake up when new timestamped data are available.
