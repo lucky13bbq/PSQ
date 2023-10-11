@@ -17,7 +17,9 @@ class VectorOfQueues
       //
     }
     std::vector<std::shared_ptr<TimestampedData<DataType> > > back();
+    std::shared_ptr<TimestampedData<DataType> > back(const unsigned int &index);
     std::vector<std::shared_ptr<TimestampedData<DataType> > > backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp);
+    std::shared_ptr<TimestampedData<DataType> > backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const unsigned int &index);
 
     std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector();
     std::vector<std::deque<std::shared_ptr<TimestampedData<DataType> > > > copyVector(const std::chrono::duration<double> &duration);
@@ -66,6 +68,20 @@ std::vector<std::shared_ptr<TimestampedData<DataType> > > VectorOfQueues<DataTyp
 
 
 template <class DataType>
+std::shared_ptr<TimestampedData<DataType> > VectorOfQueues<DataType>::back(const unsigned int &index)
+{
+  std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+
+  if (_vectorOfQueues.size() <= index
+    || _vectorOfQueues.at(index).empty())
+  {
+    return NULL;
+  }
+  return _vectorOfQueues.at(index).back();
+}
+
+
+template <class DataType>
 std::vector<std::shared_ptr<TimestampedData<DataType> > > VectorOfQueues<DataType>::backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp)
 {
   bool stopWaiting;
@@ -100,6 +116,41 @@ std::vector<std::shared_ptr<TimestampedData<DataType> > > VectorOfQueues<DataTyp
         }
       }
       return stopWaiting;
+    });
+  }
+  return data;
+}
+
+
+template <class DataType>
+std::shared_ptr<TimestampedData<DataType> > VectorOfQueues<DataType>::backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const unsigned int &index)
+{
+  std::shared_ptr<TimestampedData<DataType> >  data = NULL;
+
+  // wait for new data
+  {
+    std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+    _cvAny.wait(sharedLock,[&] ()->bool
+    {
+      // check vector size
+      if (_vectorOfQueues.empty()
+        || _vectorOfQueues.size() <= index
+        || _vectorOfQueues.at(index).empty()
+        || !_vectorOfQueues.at(index).back())
+      {
+        data = NULL;
+        return false; // keep waiting
+      }
+
+      // check timestamps if new data
+      data = _vectorOfQueues.at(index).back();
+      if (data->_timestamp > lastDataTimestamp)
+      {
+        lastDataTimestamp = data->_timestamp;
+        return true; // stop waiting
+      }
+      data = NULL;
+      return false;
     });
   }
   return data;
