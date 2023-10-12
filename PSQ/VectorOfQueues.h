@@ -423,70 +423,63 @@ template <class DataType>
 unsigned int VectorOfQueues<DataType>::push_back(const unsigned int & index, const std::shared_ptr<TimestampedData<DataType> > & data, const std::chrono::duration<double> &duration)
 {
   std::deque<std::shared_ptr<TimestampedData<DataType> > > * queuePtr;
-  unsigned int queueSize = 0;
+  std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
 
+  // resize vector if needed
+  if (_vectorOfQueues.size() <= index)
   {
-    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-
-    // resize vector if needed
-    if (_vectorOfQueues.size() <= index)
-    {
-      _vectorOfQueues.resize(index+1);
-    }
-
-    queuePtr = &(_vectorOfQueues.at(index));
-    if (!data)
-    {
-      return queuePtr->size();
-    }
-
-    // pop old data and add data to queue
-    auto timestamp = data->_timestamp - duration;
-    queuePtr = &(_vectorOfQueues.at(index));
-    while (!queuePtr->empty()
-      && queuePtr->front()
-      && queuePtr->front()->_timestamp < timestamp)
-    {
-      queuePtr->pop_front();
-    }
-    queuePtr->push_back(data);
-    queueSize = queuePtr->size();
+    _vectorOfQueues.resize(index+1);
   }
 
+  queuePtr = &(_vectorOfQueues.at(index));
+  if (!data)
+  {
+    return queuePtr->size();
+  }
+
+  // pop old data and add data to queue
+  auto timestamp = data->_timestamp - duration;
+  queuePtr = &(_vectorOfQueues.at(index));
+  while (!queuePtr->empty()
+    && queuePtr->front()
+    && queuePtr->front()->_timestamp < timestamp)
+  {
+    queuePtr->pop_front();
+  }
+  queuePtr->push_back(data);
+
+  // notify waiting threads
   _cvAny.notify_all();
-  return queueSize;
+  return queuePtr->size();
 };
 
 
 template <class DataType>
 unsigned int VectorOfQueues<DataType>::push_back(const unsigned int & index, const std::shared_ptr<TimestampedData<DataType> > & data, const unsigned int & maxQueueSize)
 {
-  unsigned int queueSize = 0;
+  std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
+
+  // resize vector if needed
+  if (_vectorOfQueues.size() <= index)
   {
-    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-
-    // resize vector if needed
-    if (_vectorOfQueues.size() <= index)
-    {
-      _vectorOfQueues.resize(index+1);
-    }
-
-    if (!data)
-    {
-      return _vectorOfQueues.at(index).size();
-    }
-
-    // add data to queue and pop if max size reached
-    _vectorOfQueues.at(index).push_back(data);
-    if (_vectorOfQueues.at(index).size() > maxQueueSize)
-    {
-      _vectorOfQueues.at(index).pop_front();
-    }
-    queueSize = _vectorOfQueues.at(index).size();
+    _vectorOfQueues.resize(index+1);
   }
 
+  if (!data)
+  {
+    return _vectorOfQueues.at(index).size();
+  }
+
+  // add data to queue and pop if max size reached
+  _vectorOfQueues.at(index).push_back(data);
+  if (_vectorOfQueues.at(index).size() > maxQueueSize)
+  {
+    _vectorOfQueues.at(index).pop_front();
+  }
+
+  // notify waiting threads
   _cvAny.notify_all();
-  return queueSize;
+  return _vectorOfQueues.at(index).size();
 };
 
 

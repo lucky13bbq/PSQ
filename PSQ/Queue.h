@@ -230,24 +230,22 @@ unsigned int Queue<DataType>::push_back(const std::shared_ptr<TimestampedData<Da
 {
   if (!data)
   {
+    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
     return _queue.size();
   }
 
-  auto timestamp = data->_timestamp - maxDuration;
-
   // add data to queue and pop if max size reached
+  auto timestamp = data->_timestamp - maxDuration;
+  std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
+  while (!_queue.empty()
+    && _queue.front()
+    && _queue.front()->_timestamp < timestamp)
   {
-    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-
-    while (!_queue.empty()
-      && _queue.front()
-      && _queue.front()->_timestamp < timestamp)
-    {
-      _queue.pop_front();
-    }
-    _queue.push_back(data);
+    _queue.pop_front();
   }
+  _queue.push_back(data);
 
+  // notify waiting threads
   _cvAny.notify_all();
   return _queue.size();
 };
@@ -258,24 +256,21 @@ unsigned int Queue<DataType>::push_back(const std::shared_ptr<TimestampedData<Da
 {
   if (!data)
   {
+    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
     return _queue.size();
   }
 
-  unsigned queueSize = 0;
-
   // add data to queue and pop if max size reached
+  std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
+  _queue.push_back(data);
+  if (_queue.size() > maxQueueSize)
   {
-    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-    _queue.push_back(data);
-    if (_queue.size() > maxQueueSize)
-    {
-      _queue.pop_front();
-    }
-    queueSize = _queue.size();
+    _queue.pop_front();
   }
 
+  // notify waiting threads
   _cvAny.notify_all();
-  return queueSize;
+  return _queue.size();
 };
 
 
