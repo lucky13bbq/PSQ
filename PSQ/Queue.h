@@ -228,25 +228,23 @@ unsigned int Queue<DataType>::numElementsAfterTimestamp(const std::deque<std::sh
 template <class DataType>
 unsigned int Queue<DataType>::push_back(const std::shared_ptr<TimestampedData<DataType> > & data, const std::chrono::duration<double> &maxDuration)
 {
-  if (!data)
-  {
-    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-    return _queue.size();
-  }
-
-  // add data to queue and pop if max size reached
-  auto timestamp = data->_timestamp - maxDuration;
   std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-  while (!_queue.empty()
-    && _queue.front()
-    && _queue.front()->_timestamp < timestamp)
-  {
-    _queue.pop_front();
-  }
-  _queue.push_back(data);
 
-  // notify waiting threads
-  _cvAny.notify_all();
+  if (data)
+  {
+    // add data to queue and pop if max size reached
+    auto timestamp = data->_timestamp - maxDuration;
+    while (!_queue.empty()
+      && _queue.front()
+      && _queue.front()->_timestamp < timestamp)
+    {
+      _queue.pop_front();
+    }
+    _queue.push_back(data);
+
+    // notify waiting threads
+    _cvAny.notify_all();
+  }
   return _queue.size();
 };
 
@@ -254,22 +252,19 @@ unsigned int Queue<DataType>::push_back(const std::shared_ptr<TimestampedData<Da
 template <class DataType>
 unsigned int Queue<DataType>::push_back(const std::shared_ptr<TimestampedData<DataType> > & data, const unsigned int & maxQueueSize)
 {
-  if (!data)
-  {
-    std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-    return _queue.size();
-  }
-
-  // add data to queue and pop if max size reached
   std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
-  _queue.push_back(data);
-  if (_queue.size() > maxQueueSize)
+  if (data)
   {
-    _queue.pop_front();
-  }
+    // add data to queue and pop if max size reached
+    _queue.push_back(data);
+    if (_queue.size() > maxQueueSize)
+    {
+      _queue.pop_front();
+    }
 
-  // notify waiting threads
-  _cvAny.notify_all();
+    // notify waiting threads
+    _cvAny.notify_all();
+  }
   return _queue.size();
 };
 

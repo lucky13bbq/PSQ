@@ -431,25 +431,22 @@ unsigned int VectorOfQueues<DataType>::push_back(const unsigned int & index, con
     _vectorOfQueues.resize(index+1);
   }
 
-  queuePtr = &(_vectorOfQueues.at(index));
-  if (!data)
+  if (data)
   {
-    return queuePtr->size();
-  }
+    // pop old data and add data to queue
+    auto timestamp = data->_timestamp - duration;
+    queuePtr = &(_vectorOfQueues.at(index));
+    while (!queuePtr->empty()
+      && queuePtr->front()
+      && queuePtr->front()->_timestamp < timestamp)
+    {
+      queuePtr->pop_front();
+    }
+    queuePtr->push_back(data);
 
-  // pop old data and add data to queue
-  auto timestamp = data->_timestamp - duration;
-  queuePtr = &(_vectorOfQueues.at(index));
-  while (!queuePtr->empty()
-    && queuePtr->front()
-    && queuePtr->front()->_timestamp < timestamp)
-  {
-    queuePtr->pop_front();
+    // notify waiting threads
+    _cvAny.notify_all();
   }
-  queuePtr->push_back(data);
-
-  // notify waiting threads
-  _cvAny.notify_all();
   return queuePtr->size();
 };
 
@@ -465,20 +462,18 @@ unsigned int VectorOfQueues<DataType>::push_back(const unsigned int & index, con
     _vectorOfQueues.resize(index+1);
   }
 
-  if (!data)
+  if (data)
   {
-    return _vectorOfQueues.at(index).size();
-  }
+    // add data to queue and pop if max size reached
+    _vectorOfQueues.at(index).push_back(data);
+    if (_vectorOfQueues.at(index).size() > maxQueueSize)
+    {
+      _vectorOfQueues.at(index).pop_front();
+    }
 
-  // add data to queue and pop if max size reached
-  _vectorOfQueues.at(index).push_back(data);
-  if (_vectorOfQueues.at(index).size() > maxQueueSize)
-  {
-    _vectorOfQueues.at(index).pop_front();
+    // notify waiting threads
+    _cvAny.notify_all();
   }
-
-  // notify waiting threads
-  _cvAny.notify_all();
   return _vectorOfQueues.at(index).size();
 };
 
