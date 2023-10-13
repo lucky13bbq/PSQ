@@ -28,7 +28,7 @@ class Queue
     std::deque<TimestampedData<DataType> > copyQueueButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> &lastDataTimestamp, const std::chrono::duration<double> &duration);
     std::deque<TimestampedData<DataType> > copyQueueButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> &lastDataTimestamp, const unsigned int &numElements);
 
-    static unsigned int numElementsAfterTimestamp(const std::deque<TimestampedData<DataType> > & queueTemp, const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp);
+    unsigned int numElementsAfterTimestamp(const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp);
 
     unsigned int push_back(const TimestampedData<DataType> & data, const std::chrono::duration<double> &maxDuration);
     unsigned int push_back(const TimestampedData<DataType> & data, const unsigned int & maxQueueSize);
@@ -203,12 +203,15 @@ std::deque<TimestampedData<DataType> > Queue<DataType>::copyQueueButWaitNewData(
 
 
 template <class DataType>
-unsigned int Queue<DataType>::numElementsAfterTimestamp(const std::deque<TimestampedData<DataType> > & queueTemp, const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp)
+unsigned int Queue<DataType>::numElementsAfterTimestamp(const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp)
 {
   unsigned int counter = 0;
-  for (auto dataItr=queueTemp.rbegin(); queueTemp.rend() != dataItr; ++dataItr)
+
+  std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+
+  for (auto dataItr=_queue.rbegin(); _queue.rend()!=dataItr; ++dataItr)
   {
-    if ((*dataItr)._timestamp < timestamp)
+    if (dataItr->_timestamp < timestamp)
     {
       break;
     }

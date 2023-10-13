@@ -29,7 +29,7 @@ class VectorOfQueues
     std::vector<std::deque<TimestampedData<DataType> > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const std::chrono::duration<double> &duration);
     std::vector<std::deque<TimestampedData<DataType> > > copyVectorButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp, const unsigned int &numElements);
 
-    static std::vector<unsigned int> numElementsAfterTimestamp(const std::vector<std::deque<TimestampedData<DataType> > > & vectorTemp, const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp);
+    std::vector<unsigned int> numElementsAfterTimestamp(const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp);
 
     unsigned int push_back(const unsigned int & index, const TimestampedData<DataType> & data, const unsigned int & maxQueueSize);
     unsigned int push_back(const unsigned int & index, const TimestampedData<DataType> & data, const std::chrono::duration<double> &duration);
@@ -58,9 +58,9 @@ std::vector<TimestampedData<DataType> > VectorOfQueues<DataType>::back()
   std::vector<TimestampedData<DataType> > vec(_vectorOfQueues.size());
   for (unsigned int i=0; i<vec.size(); ++i)
   {
-    if (!_vectorOfQueues.at(i).empty())
+    if (!_vectorOfQueues[i].empty())
     {
-      vec.at(i) = _vectorOfQueues.at(i).back();
+      vec[i] = _vectorOfQueues[i].back();
     }
   }
   return vec;
@@ -104,14 +104,14 @@ std::vector<TimestampedData<DataType> > VectorOfQueues<DataType>::backButWaitNew
       stopWaiting = false;
       for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
       {
-        if (_vectorOfQueues.at(i).empty())
+        if (_vectorOfQueues[i].empty())
         {
           continue;
         }
-        vec.at(i) = _vectorOfQueues.at(i).back();
-        if (vec.at(i)._timestamp > lastDataTimestamp)
+        vec[i] = _vectorOfQueues[i].back();
+        if (vec[i]._timestamp > lastDataTimestamp)
         {
-          lastDataTimestamp = vec.at(i)._timestamp;
+          lastDataTimestamp = vec[i]._timestamp;
           stopWaiting = true;
         }
       }
@@ -172,21 +172,21 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
   std::vector<std::deque<TimestampedData<DataType> > > vecTemp(_vectorOfQueues.size());
   for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
   {
-    if (_vectorOfQueues.at(i).empty())
+    if (_vectorOfQueues[i].empty())
     {
       continue;
     }
-    lastEntry = &(_vectorOfQueues.at(i).back());
+    lastEntry = &(_vectorOfQueues[i].back());
     auto timestampCutoff = lastEntry->_timestamp - duration;
-    auto queueItr = _vectorOfQueues.at(i).begin();
-    for ( ; _vectorOfQueues.at(i).end()!=queueItr; ++queueItr)
+    auto queueItr = _vectorOfQueues[i].begin();
+    for ( ; _vectorOfQueues[i].end()!=queueItr; ++queueItr)
     {
       if (queueItr->_timestamp > timestampCutoff)
       {
         break;
       }
     }
-    vecTemp.at(i) = std::deque(queueItr,_vectorOfQueues.at(i).end());
+    vecTemp[i] = std::deque(queueItr,_vectorOfQueues[i].end());
   }
   return vecTemp;
 }
@@ -203,19 +203,19 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
   std::vector<std::deque<TimestampedData<DataType> > > vec(_vectorOfQueues.size());
   for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
   {
-    if (_vectorOfQueues.at(i).empty())
+    if (_vectorOfQueues[i].empty())
     {
       continue;
     }
-    queuePtr = &(_vectorOfQueues.at(i));
+    queuePtr = &(_vectorOfQueues[i]);
     if (numElements >= queuePtr->size())
     {
-      vec.at(i) = *queuePtr;
+      vec[i] = *queuePtr;
     }
     else
     {
       auto queueItr = std::prev(queuePtr->end(),numElements);
-      vec.at(i) = std::deque(queueItr,queuePtr->end());
+      vec[i] = std::deque(queueItr,queuePtr->end());
     }
   }
   return vec;
@@ -242,11 +242,11 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
     stopWaiting = false;
     for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
     {
-      if (_vectorOfQueues.at(i).empty())
+      if (_vectorOfQueues[i].empty())
       {
         continue;
       }
-      entry = &(_vectorOfQueues.at(i).back());
+      entry = &(_vectorOfQueues[i].back());
       if (entry->_timestamp > lastDataTimestamp)
       {
         lastDataTimestamp = entry->_timestamp;
@@ -281,11 +281,11 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
       stopWaiting = false;
       for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
       {
-        if (_vectorOfQueues.at(i).empty())
+        if (_vectorOfQueues[i].empty())
         {
           continue;
         }
-        entry = &(_vectorOfQueues.at(i).back());
+        entry = &(_vectorOfQueues[i].back());
         if (entry->_timestamp > lastDataTimestamp)
         {
           lastDataTimestamp = entry->_timestamp;
@@ -298,21 +298,21 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
     vec.resize(_vectorOfQueues.size());
     for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
     {
-      if (_vectorOfQueues.at(i).empty())
+      if (_vectorOfQueues[i].empty())
       {
         continue;
       }
-      entry = &(_vectorOfQueues.at(i).back());
+      entry = &(_vectorOfQueues[i].back());
       auto timestampCutoff = entry->_timestamp - duration;
-      auto queueItr = _vectorOfQueues.at(i).begin();
-      for ( ; _vectorOfQueues.at(i).end()!=queueItr; ++queueItr)
+      auto queueItr = _vectorOfQueues[i].begin();
+      for ( ; _vectorOfQueues[i].end()!=queueItr; ++queueItr)
       {
         if (queueItr->_timestamp > timestampCutoff)
         {
           break;
         }
       }
-      vec.at(i) = std::deque(queueItr,_vectorOfQueues.at(i).end());
+      vec[i] = std::deque(queueItr,_vectorOfQueues[i].end());
     }
   }
   return vec;
@@ -342,11 +342,11 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
       stopWaiting = false;
       for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
       {
-        if (_vectorOfQueues.at(i).empty())
+        if (_vectorOfQueues[i].empty())
         {
           continue;
         }
-        entry = &(_vectorOfQueues.at(i).back());
+        entry = &(_vectorOfQueues[i].back());
         if (entry->_timestamp > lastDataTimestamp)
         {
           lastDataTimestamp = entry->_timestamp;
@@ -359,21 +359,21 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
     vec.resize(_vectorOfQueues.size());
     for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
     {
-      if (_vectorOfQueues.at(i).empty())
+      if (_vectorOfQueues[i].empty())
       {
         continue;
       }
-      queuePtr = &(_vectorOfQueues.at(i));
+      queuePtr = &(_vectorOfQueues[i]);
       if (numElements >= queuePtr->size())
       {
         // copy full queue
-        vec.at(i) = *queuePtr;
+        vec[i] = *queuePtr;
       }
       else
       {
         // copy last N elements of queue
         auto queueItr = std::prev(queuePtr->end(),numElements);
-        vec.at(i) = std::deque(queueItr,queuePtr->end());
+        vec[i] = std::deque(queueItr,queuePtr->end());
       }
     }
   }
@@ -382,23 +382,25 @@ std::vector<std::deque<TimestampedData<DataType> > > VectorOfQueues<DataType>::c
 
 
 template <class DataType>
-std::vector<unsigned int> VectorOfQueues<DataType>::numElementsAfterTimestamp(const std::vector<std::deque<TimestampedData<DataType> > > & vectorTemp, const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp)
+std::vector<unsigned int> VectorOfQueues<DataType>::numElementsAfterTimestamp(const std::chrono::time_point<std::chrono::high_resolution_clock> & timestamp)
 {
-  std::vector<unsigned int> counts(vectorTemp.size(),0);
   unsigned int counter;
 
-  for (unsigned int i=0; i<vectorTemp.size(); ++i)
+  std::shared_lock<std::shared_mutex> sharedLock(_sharedMutex);
+
+  std::vector<unsigned int> counts(_vectorOfQueues.size(),0);
+  for (unsigned int i=0; i<_vectorOfQueues.size(); ++i)
   {
     counter = 0;
-    for (auto dataItr=vectorTemp.at(i).rbegin(); vectorTemp.at(i).rend() != dataItr; ++dataItr)
+    for (auto dataItr=_vectorOfQueues[i].rbegin(); _vectorOfQueues[i].rend()!=dataItr; ++dataItr)
     {
-      if ((*dataItr)._timestamp < timestamp)
+      if (dataItr->_timestamp < timestamp)
       {
         break;
       }
       ++counter;
     }
-    counts.at(i) = counter;
+    counts[i] = counter;
   }
   return counts;
 }

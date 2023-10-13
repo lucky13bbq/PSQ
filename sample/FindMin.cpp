@@ -27,9 +27,9 @@ void FindMin::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMinNumb
     // find min
     for (unsigned int i=0; i<randomNumbers.size(); ++i)
     {
-      if (randomNumbers.at(i)._data < minVal)
+      if (randomNumbers[i]._data < minVal)
       {
-        minVal = randomNumbers.at(i)._data;
+        minVal = randomNumbers[i]._data;
       }
     }
 

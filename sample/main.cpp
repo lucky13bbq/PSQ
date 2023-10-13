@@ -50,9 +50,9 @@ int main()
 
   for (unsigned int i=0; i<threads.size(); ++i)
   {
-    if (threads.at(i).joinable())
+    if (threads[i].joinable())
     {
-      threads.at(i).join();
+      threads[i].join();
     }
   }
 

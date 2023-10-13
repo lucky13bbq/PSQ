@@ -28,9 +28,9 @@ void FindMax::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMaxNumb
     // find max
     for (unsigned int i=0; i<randomNumbers.size(); ++i)
     {
-      if (randomNumbers.at(i)._data > maxVal)
+      if (randomNumbers[i]._data > maxVal)
       {
-        maxVal = randomNumbers.at(i)._data;
+        maxVal = randomNumbers[i]._data;
       }
     }
 

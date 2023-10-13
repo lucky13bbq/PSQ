@@ -60,10 +60,10 @@ void Viewer::run(Queue<float> &iMinNumbers, Queue<float> &iMaxNumbers, Queue<flo
     std::vector<std::deque<TimestampedData<float> > > randomNumbers = iRandomNumbers.copyVector();
 
     // count number of elements in other queues after current data timestamp
-    unsigned int minNumberCount = Queue<float>::numElementsAfterTimestamp(minNumbers,_lastDataTimestamp);
-    unsigned int maxNumberCount = Queue<float>::numElementsAfterTimestamp(maxNumbers,_lastDataTimestamp);
-    unsigned int multipliedBy10Count = Queue<float>::numElementsAfterTimestamp(multipliedBy10s,_lastDataTimestamp);
-    std::vector<unsigned int> randomNumberCounts = VectorOfQueues<float>::numElementsAfterTimestamp(randomNumbers,_lastDataTimestamp);
+    unsigned int minNumberCount = iMinNumbers.numElementsAfterTimestamp(_lastDataTimestamp);
+    unsigned int maxNumberCount = iMaxNumbers.numElementsAfterTimestamp(_lastDataTimestamp);
+    unsigned int multipliedBy10Count = iMultipliedBy10.numElementsAfterTimestamp(_lastDataTimestamp);
+    std::vector<unsigned int> randomNumberCounts = iRandomNumbers.numElementsAfterTimestamp(_lastDataTimestamp);
 
 //    // output data to console
     sum.printDataAndLatency(funcName);
@@ -75,7 +75,7 @@ void Viewer::run(Queue<float> &iMinNumbers, Queue<float> &iMaxNumbers, Queue<flo
       + ", multipliedBy10 timestamp " + std::to_string(multipliedBy10s.back()._timestamp.time_since_epoch().count()) + " count " + std::to_string(multipliedBy10Count);
     for (unsigned int i=0; i<randomNumberCounts.size(); ++i)
     {
-      str += ", randomNumber " + std::to_string(i) + " timestamp " + std::to_string(randomNumbers.at(i).back()._timestamp.time_since_epoch().count()) + " count " + std::to_string(randomNumberCounts.at(i));
+      str += ", randomNumber " + std::to_string(i) + " timestamp " + std::to_string(randomNumbers[i].back()._timestamp.time_since_epoch().count()) + " count " + std::to_string(randomNumberCounts[i]);
     }
     std::cout << str << std::endl;
 
