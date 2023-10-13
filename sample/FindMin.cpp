@@ -17,9 +17,9 @@ void FindMin::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMinNumb
   while(runThreads)
   {
     float minVal = std::numeric_limits<float>::max();
-    std::shared_ptr<TimestampedData<float> > randomNumber;
-    std::vector<std::shared_ptr<TimestampedData<float> > > randomNumbers;
-    std::shared_ptr<TimestampedData<float> > newData;
+    TimestampedData<float> randomNumber;
+    std::vector<TimestampedData<float> > randomNumbers;
+    TimestampedData<float> newEntry;
 
     // wait for new data
     randomNumbers = iRandomNumbers.backButWaitNewData(_lastDataTimestamp);
@@ -27,23 +27,21 @@ void FindMin::run(VectorOfQueues<float> & iRandomNumbers, Queue<float> &oMinNumb
     // find min
     for (unsigned int i=0; i<randomNumbers.size(); ++i)
     {
-      if (randomNumbers.at(i)
-        && randomNumbers.at(i)->_data < minVal)
+      if (randomNumbers.at(i)._data < minVal)
       {
-        minVal = randomNumbers.at(i)->_data;
+        minVal = randomNumbers.at(i)._data;
       }
     }
 
     // prepare data
-    newData = std::make_shared<TimestampedData<float> > ();
-    newData->_timestamp = _lastDataTimestamp;
-    newData->_data = minVal;
+    newEntry._timestamp = _lastDataTimestamp;
+    newEntry._data = minVal;
 
     // output to console
-//    newData->printDataAndLatency(funcName);
+//    newEntry.printDataAndLatency(funcName);
 
     // write data
-    oMinNumbers.push_back(newData,10);
+    oMinNumbers.push_back(newEntry,10);
 
     std::this_thread::yield();
   }
