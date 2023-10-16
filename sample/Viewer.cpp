@@ -48,6 +48,13 @@ void Viewer::run(Queue<float> &iMinNumbers, Queue<float> &iMaxNumbers, Queue<flo
   sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,5);
   sums = iSums.copyQueueButWaitNewData(_lastDataTimestamp,5s);
 
+  // test Queue::clear
+  iMaxNumbers.clear();
+
+  // test Queue::swap
+  std::deque<TimestampedData<float> > testSwap;
+  iMaxNumbers.swap(testSwap);
+
   while(runThreads)
   {
     // wait for new data

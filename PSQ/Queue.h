@@ -20,6 +20,8 @@ class Queue
 
     TimestampedData<DataType> backButWaitNewData(std::chrono::time_point<std::chrono::high_resolution_clock> & lastDataTimestamp);
 
+    void clear();
+
     std::deque<TimestampedData<DataType> > copyQueue();
     std::deque<TimestampedData<DataType> > copyQueue(const std::chrono::duration<double> &duration);
     std::deque<TimestampedData<DataType> > copyQueue(const unsigned int &numElements);
@@ -32,6 +34,8 @@ class Queue
 
     unsigned int push_back(const TimestampedData<DataType> & data, const std::chrono::duration<double> &maxDuration);
     unsigned int push_back(const TimestampedData<DataType> & data, const unsigned int & maxQueueSize);
+
+    void swap(std::deque<TimestampedData<DataType> > &other);
 
     virtual ~Queue()
     {
@@ -83,6 +87,14 @@ TimestampedData<DataType> Queue<DataType>::backButWaitNewData(std::chrono::time_
   }
   lastDataTimestamp = lastEntry._timestamp; // update last timestamp
   return lastEntry;
+}
+
+
+template <class DataType>
+void Queue<DataType>::clear()
+{
+  std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
+  _queue.clear();
 }
 
 
@@ -257,6 +269,14 @@ unsigned int Queue<DataType>::push_back(const TimestampedData<DataType> &newEntr
   _cvAny.notify_all();
   return _queue.size();
 };
+
+
+template <class DataType>
+void Queue<DataType>::swap(std::deque<TimestampedData<DataType> > &other)
+{
+  std::lock_guard<std::shared_mutex> lockGuard(_sharedMutex);
+  _queue.swap(other);
+}
 
 
 #endif // QUEUE_H
